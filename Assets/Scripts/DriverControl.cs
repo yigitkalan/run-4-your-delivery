@@ -8,8 +8,8 @@ public class DriverControl : MonoBehaviour
 
     [SerializeField] private float moveSpeed = 0.01f;
     [SerializeField] private float steerSpeed = 0.01f;
-    private float driftAmount = 0.9f;
-    private float maxSpeed = 8;
+    private float driftAmount = 0.95f;
+    private float maxSpeed = 10;
 
     private float accInput;
     private float steerInput;
