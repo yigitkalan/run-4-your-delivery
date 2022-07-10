@@ -8,8 +8,8 @@ public class DriverControl : MonoBehaviour
 
     [SerializeField] private float moveSpeed = 0.01f;
     [SerializeField] private float steerSpeed = 0.01f;
-    private float driftAmount = 0.95f;
-    private float maxSpeed = 10;
+    private float driftAmount =0.95f;
+    private float maxSpeed = 7;
 
     private float accInput;
     private float steerInput;
@@ -35,6 +35,7 @@ public class DriverControl : MonoBehaviour
     void Update(){
         setInputVector();
     }
+
     void FixedUpdate()
     {
         if(gs.isThereTime()) {
@@ -64,7 +65,7 @@ public class DriverControl : MonoBehaviour
 
     void steer(){
         //limit the cars ability to turn when moving slowly
-        float minSpeedAllow = rb.velocity.magnitude / 2;
+        float minSpeedAllow = rb.velocity.magnitude / 4;
 
         //Clamp01 limits the value between 0 or 1 like regular clamp
         minSpeedAllow = Mathf.Clamp01(minSpeedAllow);
@@ -80,7 +81,6 @@ public class DriverControl : MonoBehaviour
         Vector2 forwardVelocity = transform.up * Vector2.Dot(rb.velocity, transform.up);
         //find right velocity by multiplying dot product of velocity and transform.right
         Vector2 rightVelocity = transform.right * Vector2.Dot(rb.velocity, transform.right);
-
         rb.velocity = forwardVelocity + rightVelocity * driftAmount;
     }
 
@@ -90,7 +90,33 @@ public class DriverControl : MonoBehaviour
             steerInput = Input.GetAxis("Horizontal");
     }
 
+    public float GetLateralVelocity(){
+        //how fast the car is moving sideways
+        return Vector2.Dot(transform.right, rb.velocity);
+    }
 
+    public float GetForwardVelocity(){
+        //how fast the car is moving forward
+        return Vector2.Dot(transform.up, rb.velocity);
+    }
+
+    public bool isBreaking(){
+        float sideV = GetLateralVelocity();
+        float forwardV = GetForwardVelocity();
+
+        if(accInput < 0 && forwardV > 0){
+            return true;
+        }
+        if(Mathf.Abs(sideV) > 3){
+            return true;
+        }
+        return false;
+    }
+
+
+    public float GetAccInput(){
+        return accInput;
+    }
 
 
     void OnTriggerEnter2D(Collider2D coll){
