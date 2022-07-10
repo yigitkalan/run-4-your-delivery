@@ -140,7 +140,7 @@ public class DriverControl : MonoBehaviour
     }
 
     void OnTriggerStay2D(Collider2D coll) {
-        if(coll.tag == "road") {
+        if(coll.tag == "road" && accInput != 0) {
             gs.addScore();
         }
     }

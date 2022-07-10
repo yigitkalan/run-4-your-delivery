@@ -66,5 +66,9 @@ public class GameStatus : MonoBehaviour
     public void resetTimer() {
         gameTime = 61;
     }
+
+    public int getTimeLeft(){
+        return (int) gameTime;
+    }
 }
 
