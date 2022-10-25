@@ -1,21 +1,19 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class CameraMovement : MonoBehaviour
 {
-
-    [SerializeField]private GameObject car;
+    [SerializeField] private GameObject car;
+    
     // Start is called before the first frame update
-    void Start()
+    private void Start()
     {
         GetComponent<Rigidbody2D>().freezeRotation = true;
     }
 
     // Update is called once per frame
-    void FixedUpdate()
+    private void FixedUpdate()
     {
-        transform.position = car.transform.position + new Vector3(0,0,-10);
+        transform.position = car.transform.position + new Vector3(0, 0, -1);
+        // transform.rotation = Quaternion.Euler(new Vector3(0,0, car.transform.localRotation.eulerAngles.z));
     }
-
 }

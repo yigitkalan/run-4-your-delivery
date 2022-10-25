@@ -1,58 +1,83 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class DeliveryController : MonoBehaviour
 {
+    [SerializeField] private Sprite package;
+    [SerializeField] private Sprite destination;
+    [SerializeField] private RuntimeAnimatorController packageAnim;
+    [SerializeField] private RuntimeAnimatorController destAnim;
+    [SerializeField] private DriverControl dc;
+
+    [SerializeField] private GameObject[] locations;
+
     private int choosen;
-    private bool haveLocation = false;
-    [SerializeField]private DriverControl dc;
-    [SerializeField]private GameObject[] locations;
+    private bool haveLocation;
+
+    private GameObject selectedObject;
+    private Animator tmpAnimator;
+    private SpriteRenderer tmpSpriteRenderer;
 
     // Start is called before the first frame update
-    void Start()
+    private void Start()
     {
         dc = FindObjectOfType<DriverControl>();
     }
 
     // Update is called once per frame
-    void Update()
+    private void Update()
     {
-        if(haveLocation == false) {
+        if (haveLocation == false)
+        {
+            SetCurrentObject();
             //if we need a location for package
-             if(!dc.ifTookPackage()){
-                choosen = GenerateLocation();
-                locations[choosen].tag = "package";
-                locations[choosen].SetActive(true);
-                haveLocation = true;
-             }
-             //if we need a location for delivery point
-             else{
-                choosen = GenerateLocation();
-                locations[choosen].tag = "delivery";
-                locations[choosen].SetActive(true);
-                haveLocation = true;
-             }
+            if (!dc.ifTookPackage())
+            {
+                selectedObject.tag = "package";
+                tmpAnimator.runtimeAnimatorController = packageAnim;
+                tmpSpriteRenderer.sprite = package;
+                selectedObject.SetActive(true);
+            }
+            //if we need a location for delivery point
+            else
+            {
+                selectedObject.tag = "delivery";
+                tmpAnimator.runtimeAnimatorController = destAnim;
+                tmpSpriteRenderer.sprite = destination;
+                selectedObject.SetActive(true);
+            }
         }
     }
 
-    int GenerateLocation()
-    { 
-        int tmp = (int) Random.Range(0f,(float)(locations.Length));   
-        if(tmp != choosen)
+
+    private int GenerateIndex()
+    {
+        var tmp = (int)Random.Range(0f, locations.Length);
+        if (tmp != choosen)
             return tmp;
-        return GenerateLocation();
+        return GenerateIndex();
     }
 
-    public void SetHaveLocation(bool b){
+    private void SetCurrentObject()
+    {
+        choosen = GenerateIndex();
+        selectedObject = locations[choosen];
+        haveLocation = true;
+        tmpAnimator = selectedObject.GetComponent<Animator>();
+        tmpSpriteRenderer = selectedObject.GetComponent<SpriteRenderer>();
+    }
+
+    public void SetHaveLocation(bool b)
+    {
         haveLocation = b;
     }
 
-    public bool IfHaveLocation() {
+    public bool IfHaveLocation()
+    {
         return haveLocation;
     }
 
-    public Vector3 LocationOfPlace(){
-        return locations[choosen].transform.position; 
+    public Vector3 LocationOfPlace()
+    {
+        return locations[choosen].transform.position;
     }
 }

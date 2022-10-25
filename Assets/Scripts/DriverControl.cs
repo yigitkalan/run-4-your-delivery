@@ -1,59 +1,101 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class DriverControl : MonoBehaviour
 {
-    private bool tookPackage = false;
-
     [SerializeField] private float moveSpeed = 0.01f;
-    [SerializeField] private float steerSpeed = 0.01f;
-    private float driftAmount =0.95f;
-    private float maxSpeed = 7;
-
-    private float accInput;
-    private float steerInput;
-    private float rotationAngle;
+    [SerializeField] private float steerSpeed = 0.015f;
 
     [SerializeField] private Rigidbody2D rb;
     [SerializeField] private PointerScript ps;
     [SerializeField] private DeliveryController dc;
     [SerializeField] private GameStatus gs;
+    private readonly float driftAmount = 0.95f;
+    private readonly float maxSpeed = 8;
+
+    private float accInput;
+    private float rotationAngle;
+    private float steerInput;
+    private bool tookPackage;
 
     // Start is called before the first frame update
-    void Start()
+    private void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         ps = FindObjectOfType<PointerScript>();
         dc = FindObjectOfType<DeliveryController>();
         gs = FindObjectOfType<GameStatus>();
         rotationAngle = transform.localRotation.eulerAngles.z;
-
     }
 
     // Update is called once per frame
-    void Update(){
+    private void Update()
+    {
         setInputVector();
     }
 
-    void FixedUpdate()
+    private void FixedUpdate()
     {
-        if(gs.isThereTime()) {
+        if (gs.isThereTime())
+        {
             acc();
             killSideVelocity();
             steer();
         }
+
     }
 
-    void acc(){
-        //if gas button is not pressed add drag to stop the car
-        if(accInput == 0)
-            rb.drag = 2.0f;
-        else rb.drag = 0f;
+    private void OnCollisionEnter2D(Collision2D coll)
+    {
+        if (coll.collider.tag == "crash")
+            gs.punish(50);
+        else if (coll.collider.tag == "tree") gs.punish(20);
+    }
 
+
+    private void OnTriggerEnter2D(Collider2D coll)
+    {
+        if (coll.tag == "package")
+        {
+            if (tookPackage == false)
+            {
+                tookPackage = true;
+                coll.gameObject.SetActive(false);
+                dc.SetHaveLocation(false);
+            }
+        }
+
+        else if (coll.tag == "delivery")
+        {
+            if (tookPackage)
+            {
+                tookPackage = false;
+                coll.gameObject.SetActive(false);
+                gs.addScore(100);
+                gs.resetTimer();
+                dc.SetHaveLocation(false);
+                
+            }
+        }
+
+    }
+
+    private void OnTriggerStay2D(Collider2D coll)
+    {
+        if (coll.tag == "road" && accInput != 0) gs.addScore();
+    }
+
+    private void acc()
+    {
+        //if gas button is not pressed add drag to stop the car
+        if (accInput == 0)
+            rb.drag = 2.0f;
+        else rb.drag = 0.2f;
+        
+
+   
         //max speed check
-        float currentSpeed = Vector2.Dot(transform.up , rb.velocity);
-        if(currentSpeed > maxSpeed && accInput > 0)
+        var currentSpeed = Vector2.Dot(transform.up, rb.velocity);
+        if (currentSpeed > maxSpeed && accInput > 0)
             return;
 
         //create a force for car
@@ -63,9 +105,10 @@ public class DriverControl : MonoBehaviour
         rb.AddForce(forceVector);
     }
 
-    void steer(){
+    private void steer()
+    {
         //limit the cars ability to turn when moving slowly
-        float minSpeedAllow = rb.velocity.magnitude / 4;
+        var minSpeedAllow = rb.velocity.magnitude / 4;
 
         //Clamp01 limits the value between 0 or 1 like regular clamp
         minSpeedAllow = Mathf.Clamp01(minSpeedAllow);
@@ -76,7 +119,8 @@ public class DriverControl : MonoBehaviour
         rb.MoveRotation(rotationAngle);
     }
 
-    void killSideVelocity(){
+    private void killSideVelocity()
+    {
         //find forward velocity by multiplying dot product of velocity and transform.up
         Vector2 forwardVelocity = transform.up * Vector2.Dot(rb.velocity, transform.up);
         //find right velocity by multiplying dot product of velocity and transform.right
@@ -84,77 +128,43 @@ public class DriverControl : MonoBehaviour
         rb.velocity = forwardVelocity + rightVelocity * driftAmount;
     }
 
-    void setInputVector(){
+    private void setInputVector()
+    {
         accInput = Input.GetAxis("Vertical");
-        if(accInput != 0)
+        if (accInput != 0)
             steerInput = Input.GetAxis("Horizontal");
     }
 
-    public float GetLateralVelocity(){
+    public float GetLateralVelocity()
+    {
         //how fast the car is moving sideways
         return Vector2.Dot(transform.right, rb.velocity);
     }
 
-    public float GetForwardVelocity(){
+    public float GetForwardVelocity()
+    {
         //how fast the car is moving forward
         return Vector2.Dot(transform.up, rb.velocity);
     }
 
-    public bool isBreaking(){
-        float sideV = GetLateralVelocity();
-        float forwardV = GetForwardVelocity();
+    public bool isBreaking()
+    {
+        var sideV = GetLateralVelocity();
+        var forwardV = GetForwardVelocity();
 
-        if(accInput < 0 && forwardV > 0){
-            return true;
-        }
-        if(Mathf.Abs(sideV) > 3){
-            return true;
-        }
+        if (accInput < 0 && forwardV > 0) return true;
+        if (Mathf.Abs(sideV) > 3) return true;
         return false;
     }
 
 
-    public float GetAccInput(){
+    public float GetAccInput()
+    {
         return accInput;
     }
 
-
-    void OnTriggerEnter2D(Collider2D coll){
-        if(coll.tag == "package"){
-            if(tookPackage == false){
-                tookPackage = true;
-                coll.gameObject.SetActive(false);
-                dc.SetHaveLocation(false);
-            }
-        }
-
-        else if(coll.tag == "delivery") {
-            if(tookPackage == true) {
-                tookPackage = false;
-                coll.gameObject.SetActive(false);
-                gs.addScore(100);
-                gs.resetTimer();
-                dc.SetHaveLocation(false);
-            }
-        }
-    }
-
-    void OnTriggerStay2D(Collider2D coll) {
-        if(coll.tag == "road" && accInput != 0) {
-            gs.addScore();
-        }
-    }
-
-    void OnCollisionEnter2D(Collision2D coll){
-        if(coll.collider.tag == "crash")
-            gs.punish(50);
-        else if(coll.collider.tag == "tree" ) {
-            gs.punish(20);
-        }
-    }
-
-    public bool ifTookPackage(){
+    public bool ifTookPackage()
+    {
         return tookPackage;
     }
 }
-

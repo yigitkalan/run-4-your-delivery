@@ -18,8 +18,7 @@ public class GameStatus : MonoBehaviour
 
     // Update is called once per frame
     void Update()
-    {
-        
+    { 
        gameTime -= 1 * Time.deltaTime;
 
         if (isThereTime()) //if there is still time
@@ -30,9 +29,8 @@ public class GameStatus : MonoBehaviour
                 timerText.text = minute + ":0" + second;
             else
                 timerText.text = minute + ":" + second;
-
         }
-        
+
     }
     public bool isThereTime() {
         if(gameTime > 0)
@@ -42,6 +40,7 @@ public class GameStatus : MonoBehaviour
 
     public void addScore() {
         score += 5 * Time.deltaTime;
+        scoreText.color = Color.white;
 
         if(isThereTime())
         {
@@ -49,7 +48,8 @@ public class GameStatus : MonoBehaviour
         }
     }
 
-    public void addScore(int i){
+    public void addScore(int i)
+    {
         score += i;
     }
 
@@ -61,6 +61,8 @@ public class GameStatus : MonoBehaviour
             else
                 score -= punishment;
             scoreText.text = "Score : " + (int) score;
+            scoreText.color = Color.red;
+
         }
     }
     public void resetTimer() {

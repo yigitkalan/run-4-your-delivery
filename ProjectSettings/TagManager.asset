@@ -9,6 +9,7 @@ TagManager:
   - road
   - package
   - delivery
+  - boost
   layers:
   - Default
   - TransparentFX
