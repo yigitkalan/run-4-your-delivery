@@ -40,6 +40,7 @@ public class DriverControl : MonoBehaviour
             acc();
             killSideVelocity();
             steer();
+
         }
 
     }
@@ -73,7 +74,7 @@ public class DriverControl : MonoBehaviour
                 gs.addScore(100);
                 gs.resetTimer();
                 dc.SetHaveLocation(false);
-                
+
             }
         }
 
@@ -90,9 +91,9 @@ public class DriverControl : MonoBehaviour
         if (accInput == 0)
             rb.drag = 2.0f;
         else rb.drag = 0.2f;
-        
 
-   
+
+
         //max speed check
         var currentSpeed = Vector2.Dot(transform.up, rb.velocity);
         if (currentSpeed > maxSpeed && accInput > 0)
